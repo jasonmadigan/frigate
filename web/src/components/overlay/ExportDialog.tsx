@@ -66,6 +66,10 @@ export default function ExportDialog({
 }: ExportDialogProps) {
   const [name, setName] = useState("");
 
+  const [playbackMode, setPlaybackMode] = useState<
+    "realtime" | "timelapse_25x"
+  >("realtime");
+
   const onStartExport = useCallback(() => {
     if (!range) {
       toast.error("No valid time range selected", { position: "top-center" });
@@ -83,7 +87,7 @@ export default function ExportDialog({
       .post(
         `export/${camera}/start/${Math.round(range.after)}/end/${Math.round(range.before)}`,
         {
-          playback: "realtime",
+          playback: playbackMode,
           name,
         },
       )
@@ -96,6 +100,7 @@ export default function ExportDialog({
           setName("");
           setRange(undefined);
           setMode("none");
+          setPlaybackMode("realtime");
         }
       })
       .catch((error) => {
@@ -110,7 +115,7 @@ export default function ExportDialog({
           });
         }
       });
-  }, [camera, name, range, setRange, setName, setMode]);
+  }, [camera, name, range, playbackMode, setRange, setName, setMode]);
 
   const Overlay = isDesktop ? Dialog : Drawer;
   const Trigger = isDesktop ? DialogTrigger : DrawerTrigger;
@@ -172,8 +177,10 @@ export default function ExportDialog({
             currentTime={currentTime}
             range={range}
             name={name}
+            playbackMode={playbackMode}
             onStartExport={onStartExport}
             setName={setName}
+            setPlaybackMode={setPlaybackMode}
             setRange={setRange}
             setMode={setMode}
             onCancel={() => setMode("none")}
@@ -189,8 +196,10 @@ type ExportContentProps = {
   currentTime: number;
   range?: TimeRange;
   name: string;
+  playbackMode: "realtime" | "timelapse_25x";
   onStartExport: () => void;
   setName: (name: string) => void;
+  setPlaybackMode: (mode: "realtime" | "timelapse_25x") => void;
   setRange: (range: TimeRange | undefined) => void;
   setMode: (mode: ExportMode) => void;
   onCancel: () => void;
@@ -200,8 +209,10 @@ export function ExportContent({
   currentTime,
   range,
   name,
+  playbackMode,
   onStartExport,
   setName,
+  setPlaybackMode,
   setRange,
   setMode,
   onCancel,
@@ -289,6 +300,51 @@ export function ExportContent({
           setRange={setRange}
         />
       )}
+      <div className="my-4">
+        <Label className="mb-2 block text-sm font-medium">Export Mode</Label>
+        <RadioGroup
+          value={playbackMode}
+          onValueChange={(value) =>
+            setPlaybackMode(value as "realtime" | "timelapse_25x")
+          }
+          className="flex flex-col gap-2"
+        >
+          <div className="flex items-center gap-2">
+            <RadioGroupItem
+              className={
+                playbackMode == "realtime"
+                  ? "bg-selected from-selected/50 to-selected/90 text-selected"
+                  : "bg-secondary from-secondary/50 to-secondary/90 text-secondary"
+              }
+              id="realtime"
+              value="realtime"
+            />
+            <Label className="cursor-pointer" htmlFor="realtime">
+              Realtime
+              <span className="ml-2 text-xs text-muted-foreground">
+                Original speed
+              </span>
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <RadioGroupItem
+              className={
+                playbackMode == "timelapse_25x"
+                  ? "bg-selected from-selected/50 to-selected/90 text-selected"
+                  : "bg-secondary from-secondary/50 to-secondary/90 text-secondary"
+              }
+              id="timelapse_25x"
+              value="timelapse_25x"
+            />
+            <Label className="cursor-pointer" htmlFor="timelapse_25x">
+              Timelapse (25x)
+              <span className="ml-2 text-xs text-muted-foreground">
+                25x speed, no audio
+              </span>
+            </Label>
+          </div>
+        </RadioGroup>
+      </div>
       <Input
         className="text-md my-6"
         type="search"
