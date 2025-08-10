@@ -75,6 +75,9 @@ export default function MobileReviewSettingsDrawer({
   // exports
 
   const [name, setName] = useState("");
+  const [playbackMode, setPlaybackMode] = useState<
+    "realtime" | "timelapse_25x"
+  >("realtime");
   const onStartExport = useCallback(() => {
     if (!range) {
       toast.error(t("toast.error.noValidTimeSelected"), {
@@ -94,7 +97,7 @@ export default function MobileReviewSettingsDrawer({
       .post(
         `export/${camera}/start/${Math.round(range.after)}/end/${Math.round(range.before)}`,
         {
-          playback: "realtime",
+          playback: playbackMode,
           name,
         },
       )
@@ -109,6 +112,7 @@ export default function MobileReviewSettingsDrawer({
           setName("");
           setRange(undefined);
           setMode("none");
+          setPlaybackMode("realtime");
         }
       })
       .catch((error) => {
@@ -126,7 +130,7 @@ export default function MobileReviewSettingsDrawer({
           },
         );
       });
-  }, [camera, name, range, setRange, setName, setMode, t]);
+  }, [camera, name, range, playbackMode, setRange, setName, setMode, t]);
 
   // filters
 
@@ -193,8 +197,10 @@ export default function MobileReviewSettingsDrawer({
         currentTime={currentTime}
         range={range}
         name={name}
+        playbackMode={playbackMode}
         onStartExport={onStartExport}
         setName={setName}
+        setPlaybackMode={setPlaybackMode}
         setRange={setRange}
         setMode={(mode) => {
           setMode(mode);
